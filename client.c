@@ -12,6 +12,7 @@ int main(int argc , char *argv[])
 	struct sockaddr_in server;
 	char fileName[1000] , server_reply[2000];
 	char serverIP[50];
+	char exitMessage[20];
 	
 	//Create socket
 	sock = socket(AF_INET , SOCK_STREAM , 0);
@@ -24,6 +25,7 @@ int main(int argc , char *argv[])
 	
 	printf("Enter server IP : ");
 	scanf("%s" , serverIP);
+	strcpy(exitMessage, "exit");
 
 	server.sin_addr.s_addr = inet_addr(serverIP);
 	server.sin_family = AF_INET;
@@ -44,6 +46,12 @@ int main(int argc , char *argv[])
 		printf("Enter file name to recieve : ");
 		scanf("%s" , fileName);
 		
+		if(strcasecmp(exitMessage, fileName) == 0)
+		{
+			puts("bye");
+			break;
+		}
+
 		//Send some data
 		if( send(sock , fileName , strlen(fileName) , 0) < 0)
 		{
