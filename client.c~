@@ -17,6 +17,7 @@ int main(int argc , char *argv[])
 	if (sock == -1)
 	{
 		printf("Could not create socket");
+		return 1;
 	}
 	puts("Socket created");
 	
