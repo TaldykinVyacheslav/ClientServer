@@ -1,18 +1,22 @@
 /*
-	C socket server example
+	C socket server example, handles multiple clients using threads
 */
 
 #include<stdio.h>
 #include<string.h>	//strlen
+#include<stdlib.h>	//strlen
 #include<sys/socket.h>
 #include<arpa/inet.h>	//inet_addr
 #include<unistd.h>	//write
+#include<pthread.h> //for threading , link with lpthread
+
+//the thread function
+void *connection_handler(void *);
 
 int main(int argc , char *argv[])
 {
-	int socket_desc , client_sock , c , read_size;
+	int socket_desc , client_sock , c , *new_sock;
 	struct sockaddr_in server , client;
-	char client_message[2000];
 	
 	//Create socket
 	socket_desc = socket(AF_INET , SOCK_STREAM , 0);
@@ -43,20 +47,67 @@ int main(int argc , char *argv[])
 	puts("Waiting for incoming connections...");
 	c = sizeof(struct sockaddr_in);
 	
-	//accept connection from an incoming client
-	client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
+	
+	//Accept and incoming connection
+	puts("Waiting for incoming connections...");
+	c = sizeof(struct sockaddr_in);
+	while( (client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
+	{
+		puts("Connection accepted");
+		
+		pthread_t sniffer_thread;
+		new_sock = malloc(1);
+		*new_sock = client_sock;
+		
+		if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0)
+		{
+			perror("could not create thread");
+			return 1;
+		}
+		
+		//Now join the thread , so that we dont terminate before the thread
+		//pthread_join( sniffer_thread , NULL);
+		puts("Handler assigned");
+	}
+	
 	if (client_sock < 0)
 	{
 		perror("accept failed");
 		return 1;
 	}
-	puts("Connection accepted");
+	
+	return 0;
+}
+
+/*
+ * This will handle connection for each client
+ * */
+void *connection_handler(void *socket_desc)
+{
+	//Get the socket descriptor
+	int sock = *(int*)socket_desc;
+	int read_size;
+	char *message , fileName[100];
 	
 	//Receive a message from client
-	while( (read_size = recv(client_sock , client_message , 2000 , 0)) > 0 )
+	while( (read_size = recv(sock , fileName , 100 , 0)) > 0 )
 	{
-		//Send the message back to client
-		write(client_sock , client_message , strlen(client_message));
+		//Open file and know its size
+		FILE *f = fopen(fileName, "rb");
+		fseek(f, 0, SEEK_END);
+		long fsize = ftell(f);
+		fseek(f, 0, SEEK_SET);
+
+		//Read file content
+		char *message = malloc(fsize + 1);
+		fread(message, fsize, 1, f);
+		fclose(f);
+		
+		//Set buffer as null-terminated string
+		message[fsize] = 0;
+
+		//Send the file content back to client
+		write(sock , message , strlen(message));
 	}
 	
 	if(read_size == 0)
@@ -67,7 +118,11 @@ int main(int argc , char *argv[])
 	else if(read_size == -1)
 	{
 		perror("recv failed");
+		return 1;
 	}
+		
+	//Free the socket pointer
+	free(socket_desc);
 	
 	return 0;
 }

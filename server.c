@@ -118,7 +118,7 @@ void *connection_handler(void *socket_desc)
 	else if(read_size == -1)
 	{
 		perror("recv failed");
-		return 1;
+		return (void*)1;
 	}
 		
 	//Free the socket pointer
