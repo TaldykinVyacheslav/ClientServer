@@ -1,8 +1,14 @@
 CC := $(CROSS_COMPILE)gcc
+LIBS := -lpthread
 
 all:
-	$(CC) -o client client.c -lpthread
-	$(CC) -o server server.c -lpthread
+	mkdir -p clientFiles
+	mkdir -p serverFiles
+	$(CC) -o client client.c $(LIBS)
+	$(CC) -o server server.c $(LIBS)
+	mv client clientFiles
+	mv server serverFiles
+	cp -p ServerDoc.in serverFiles
 clean:
-	rm -f client client.o
-	rm -f server server.o
+	rm -r ./clientFiles
+	rm -r ./serverFiles
