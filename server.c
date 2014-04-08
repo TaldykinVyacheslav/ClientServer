@@ -110,4 +110,5 @@ void main (int argc, char *argv[])
 			}
 		}
 	}
+	close(listen_sd);
 }
