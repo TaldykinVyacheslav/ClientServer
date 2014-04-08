@@ -75,4 +75,7 @@ main (int argc, char *argv[])
 		bytes_written = fwrite(buffer, 1, bytes_read, file);
 		remains -= buff_size;
 	}
+
+	fclose(file);
+	close(sockfd);
 }
