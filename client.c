@@ -1,75 +1,15 @@
-/*
-	C ECHO client example using sockets
-*/
-#include<stdio.h>	//printf
-#include<string.h>	//strlen
-#include<sys/socket.h>	//socket
-#include<arpa/inet.h>	//inet_addr
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <sys/ioctl.h>
 
-int main(int argc , char *argv[])
+
+#define SERVER_PORT 12345
+#define BUFFER_SIZE 80
+
+main (int argc, char *argv[])
 {
-	int sock;
-	struct sockaddr_in server;
-	char fileName[1000] , server_reply[2000];
-	char serverIP[50];
-	char exitMessage[20];
 	
-	//Create socket
-	sock = socket(AF_INET , SOCK_STREAM , 0);
-	if (sock == -1)
-	{
-		printf("Could not create socket");
-		return 1;
-	}
-	puts("Socket created");
-	
-	printf("Enter server IP : ");
-	scanf("%s" , serverIP);
-	strcpy(exitMessage, "exit");
-
-	server.sin_addr.s_addr = inet_addr(serverIP);
-	server.sin_family = AF_INET;
-	server.sin_port = htons( 8888 );
-
-	//Connect to remote server
-	if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
-	{
-		perror("connect failed. Error");
-		return 1;
-	}
-	
-	puts("Connected\n");
-	
-	//keep communicating with server
-	while(1)
-	{
-		printf("Enter file name to recieve : ");
-		scanf("%s" , fileName);
-		
-		if(strcasecmp(exitMessage, fileName) == 0)
-		{
-			puts("bye");
-			break;
-		}
-
-		//Send some data
-		if( send(sock , fileName , strlen(fileName) , 0) < 0)
-		{
-			puts("Send failed");
-			return 1;
-		}
-		
-		//Receive a reply from the server
-		if( recv(sock , server_reply , 2000 , 0) < 0)
-		{
-			puts("recv failed");
-			break;
-		}
-		
-		puts("Server reply :");
-		puts(server_reply);
-	}
-	
-	close(sock);
-	return 0;
 }
