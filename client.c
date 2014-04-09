@@ -17,22 +17,30 @@ main (int argc, char *argv[])
 	struct sockaddr_in addr;
 
 	if (argc != 3) {
-		perror("wrong args");
+		perror("wrong args"); //Функция perror() преобразует значение глобальной переменной errno в строку и записывает эту строку в поток ошибок stderr. 
 		exit(-1);
 	}
 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	sockfd = socket(AF_INET, SOCK_STREAM, 0); //- SOCK_STREAM: посылаются потоки байтов, понятие "сообщения" не вводится. Используемый протокол связи надежен, с установлением виртуального соединения, как TCP в области AF_INET; 
 	if (sockfd < 0)
 	{
 		perror("socket");
 		exit(-1);
 	}
 
+	/*
+	 socket(2) creates a socket, connect(2) connects a socket	 to  a	remote
+       socket  address,	 the bind(2) function binds a socket to a local socket
+       address, listen(2) tells the  socket  that  new	connections  shall  be
+       accepted, and accept(2) is used to get a new socket with a new incoming
+       connection.  socketpair(2)  returns  two	 connected  anonymous  sockets
+       (only implemented for a few local families like PF_UNIX)
+	*/
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family      = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(argv[1]);
-	addr.sin_port        = htons(SERVER_PORT);
+	addr.sin_addr.s_addr = inet_addr(argv[1]); //The inet_addr function converts a string containing an IPv4 dotted-decimal address into a proper address for the IN_ADDR structure.
+	addr.sin_port        = htons(SERVER_PORT); //преобразовать короткое целое из формата локального хоста в сетевой формат
 
 	error = connect(sockfd,
 					(struct sockaddr *)&addr,
@@ -58,7 +66,7 @@ main (int argc, char *argv[])
 	int bytes_written;
 	char dest_filename[100];
 	strcpy (dest_filename, argv[2]);
-	strcat (dest_filename, "_copy");
+	//strcat (dest_filename, "_copy");
 	FILE* file = fopen(dest_filename, "wb");
 
 	// retrieve file name

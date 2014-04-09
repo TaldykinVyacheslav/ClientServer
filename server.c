@@ -8,7 +8,6 @@
 #define SERVER_PORT 12345
 #define QUEUE_SIZE 5
 
-
 void send_file(char* filename, int socket)
 {
 	int bytes_read;
@@ -37,7 +36,7 @@ void *thread_func(void *sock)
 {
 	int asock = *((int*)sock);
 	char buffer[80];
-	int error = recv(asock, buffer, sizeof(buffer), 0);
+	int error = recv(asock, buffer, sizeof(buffer), 0); // last parameter - flags
 
 	// send file
 	send_file(buffer, asock);
@@ -46,7 +45,7 @@ void *thread_func(void *sock)
 
 void main (int argc, char *argv[])
 {
-	int error, on;
+	int error;
 	int listen_sd;
 
 	int accept_sd;
@@ -61,9 +60,6 @@ void main (int argc, char *argv[])
 		exit(-1);
 	}
 
-	error = setsockopt(listen_sd, SOL_SOCKET,  SO_REUSEADDR,
-						(char *)&on, sizeof(on));
-
 	// setoption error
 	if (error < 0) {
 		perror("setsockopt() failed");
@@ -73,7 +69,7 @@ void main (int argc, char *argv[])
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // converts a u_long from host to TCP/IP network byte order (which is big-endian).
 	addr.sin_port  = htons(SERVER_PORT);
 	error = bind(listen_sd, (struct sockaddr *)&addr, sizeof(addr));
 
@@ -101,14 +97,7 @@ void main (int argc, char *argv[])
 		}
 		// here start new thread
 		pthread_t pthread;
-		if (thread_def) {
-			pthread_create(&pthread, NULL, &thread_func, (void*)&accept_sd);
-		} else {	
-	   		child_pid = fork();
-	   		if(child_pid == 0) {
-				thread_func((void*)&accept_sd);
-			}
-		}
+		pthread_create(&pthread, NULL, &thread_func, (void*)&accept_sd);
 	}
 	close(listen_sd);
 }
